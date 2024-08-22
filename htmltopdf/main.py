@@ -11,6 +11,7 @@ app.include_router(convert.router)
 async def healthcheck():
     return {"message": "Healthy"}
 
+
 if __name__ == "__main__":
     # for manual run and debug
     uvicorn.run("main:app",

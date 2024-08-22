@@ -1,10 +1,10 @@
-from fastapi import UploadFile, File
+from datetime import datetime, timedelta
+
+import pdfkit
+from fastapi import UploadFile
 
 from htmltopdf.models.convert import ConvertData
 from htmltopdf.utils.utils import Utils
-
-import pdfkit
-from datetime import datetime, timedelta
 
 
 async def convert(data: ConvertData) -> bool:

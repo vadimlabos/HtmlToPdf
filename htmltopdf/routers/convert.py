@@ -1,16 +1,9 @@
-import fileinput
 from enum import Enum
-from typing import Annotated
-import json
 
-from pydantic.v1.json import pydantic_encoder
-from starlette.datastructures import FormData
+from fastapi import APIRouter, Request, HTTPException
 
 from htmltopdf.controller import converter
 from htmltopdf.models.convert import ConvertData
-from fastapi import APIRouter, File, UploadFile, Depends, Request, HTTPException
-
-import threading
 
 router = APIRouter()
 
@@ -20,7 +13,7 @@ class BodyType(Enum):
     FORM_DATA = 2
 
 
-async def body_type(request: Request):
+async def body_type(request: Request) -> BodyType:
     content_type = request.headers.get('Content-Type')
     if content_type is None:
         raise HTTPException(status_code=400, detail='No Content-Type provided!')
@@ -42,7 +35,9 @@ async def body_type(request: Request):
     response_description="Returns status weather success convertion"
 )
 async def convert(request: Request):
-    type = await body_type(request)
+    type: BodyType = await body_type(request)
+    status: bool = False
+
     match (type):
         case BodyType.FORM_DATA:
             body = await request.form()
@@ -50,9 +45,14 @@ async def convert(request: Request):
             if files:
                 for file in files:
                     print(f'Filename: {file.filename}')
-                    await converter.convert_file(file)
+                    status = await converter.convert_file(file)
         case BodyType.JSON:
             content = await request.json()
             print(content)
             data: ConvertData = ConvertData(**content)
-            await converter.convert(data)
+            status = await converter.convert(data)
+
+    if status:
+        return {"Message": "Converted"}
+    else:
+        return {"Message": "Failed to convert"}
