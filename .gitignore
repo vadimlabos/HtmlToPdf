@@ -1,0 +1,8 @@
+*.html
+*.pdf
+*.pyc
+*.iml
+*.lock
+
+.idea
+/resources
