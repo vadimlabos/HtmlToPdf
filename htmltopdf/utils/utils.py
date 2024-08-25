@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 import os
 
@@ -16,17 +17,22 @@ class Utils:
     def get_footer_template_path() -> str:
         base: str = Path(__file__).parent.parent.as_posix()
         footer_file_path: str = get_general_settings().footer_path
-        file_full_path: str = base + footer_file_path
-
-        return file_full_path
+        return base + footer_file_path
 
     @staticmethod
     def get_css_path() -> str:
         base: str = Path(__file__).parent.parent.as_posix()
         footer_file_path: str = get_general_settings().css_path
-        file_full_path: str = base + footer_file_path
+        return base + footer_file_path
 
-        return file_full_path
+    @staticmethod
+    def get_temp_dir() -> str:
+        base: str = Path(__file__).parent.parent.parent.as_posix()
+        temp_dir: str = get_general_settings().temp_dir
+
+        os.makedirs(base + temp_dir, exist_ok=True)
+
+        return base + temp_dir
 
     @staticmethod
     def get_pdf_options() -> dict:
@@ -57,3 +63,9 @@ class Utils:
         pre, ext = os.path.splitext(file_name)
         counter = counter + 1
         return pre + "_(" + str(counter) + ")_" + ".pdf"
+
+    @staticmethod
+    def parse_arguments() -> any:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--debug', action='store_true', help="Enable debug mode")
+        return parser.parse_args()

@@ -27,7 +27,7 @@ async def body_type(request: Request) -> BodyType:
         try:
             return BodyType.JSON
         except Exception:
-            raise HTTPException(status_code=400, detail='Invalid body')
+            raise HTTPException(status_code=422, detail='Invalid body')
 
 
 @router.post(
@@ -37,6 +37,7 @@ async def body_type(request: Request) -> BodyType:
 async def convert(request: Request):
     type: BodyType = await body_type(request)
     status: bool = False
+    error: str = None
 
     match (type):
         case BodyType.FORM_DATA:
@@ -44,15 +45,13 @@ async def convert(request: Request):
             files = body.getlist('files')  # returns a list of UploadFile objects
             if files:
                 for file in files:
-                    print(f'Filename: {file.filename}')
-                    status = await converter.convert_file(file)
+                    status, error = await converter.convert_file(file)
         case BodyType.JSON:
             content = await request.json()
-            print(content)
             data: ConvertData = ConvertData(**content)
-            status = await converter.convert(data)
+            status, error = await converter.convert(data)
 
     if status:
         return {"Message": "Converted"}
     else:
-        return {"Message": "Failed to convert"}
+        raise HTTPException(status_code=422, detail=error)

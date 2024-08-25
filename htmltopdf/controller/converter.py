@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Any
 
 import pdfkit
 from fastapi import UploadFile
@@ -7,8 +8,9 @@ from htmltopdf.models.convert import ConvertData
 from htmltopdf.utils.utils import Utils
 
 
-async def convert(data: ConvertData) -> bool:
+async def convert(data: ConvertData) -> Any:
     status: bool = False
+    error: str = None
     delta: timedelta = timedelta(0, 0, 0, 0)
     try:
         print("Converting: " + data.htmlPath)
@@ -18,28 +20,37 @@ async def convert(data: ConvertData) -> bool:
         delta = end - start
 
     except Exception as e:
-        print(f'Failed to convert file, file name: {0}. \n Exception: {1}', data.htmlPath, e)
+        error = f'Failed to convert file, file name: {data.htmlPath}. \n Exception: {e}'
         status = False
+        print(error)
     finally:
-        print(f'Converted, file name: {0}. Duration {1} ms.', data.htmlPath, delta.total_seconds() * 1000)
-        return status
+        if status:
+            print(f'Converted, file name: {data.htmlPath}. Duration {delta.total_seconds() * 1000} ms.')
+
+        return status, error
 
 
-async def convert_file(file: UploadFile) -> bool:
+async def convert_file(file: UploadFile) -> Any:
     status: bool = False
+    error: str = None
     delta: timedelta = timedelta(0, 0, 0, 0)
     try:
         print("Converting: " + file.filename)
         start: datetime = datetime.now()
         content: bytes = await file.read()
-        status = pdfkit.from_string(content.decode('utf-8'), Utils.generate_temp_file_name(file.filename),
+        pdf: str = Utils.get_temp_dir() + Utils.generate_temp_file_name(file.filename)
+        status = pdfkit.from_string(content.decode('utf-8'),
+                                    pdf,
                                     options=Utils.get_pdf_options())
         end: datetime = datetime.now()
         delta = end - start
 
     except Exception as e:
-        print(f'Failed to convert file, file name: {0}. \n Exception: {1}', file.filename, e)
+        error = f'Failed to convert file, file name: {file.filename}. \n Exception: {e}'
         status = False
+        print(error)
     finally:
-        print(f'Converted, file name: {0}. Duration {1} ms.', file.filename, delta.total_seconds() * 1000)
-        return status
+        if status:
+            print(f'Converted, file name: {file.filename}. Duration {delta.total_seconds() * 1000} ms.')
+
+        return status, error

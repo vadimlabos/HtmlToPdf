@@ -17,6 +17,7 @@ class GeneralSettings(BaseSettings):
     log_level: str
     footer_path: str
     css_path: str
+    temp_dir: str
 
     class Config:
         env_file = Path(__file__).parent / "./../.env"
